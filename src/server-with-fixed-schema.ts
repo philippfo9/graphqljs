@@ -75,7 +75,7 @@ const root = {
         resolveType: (obj: any, context: any, info: any) => {
             if (obj.school) return 'Student';
             else if (obj.workplace) return 'Worker';
-            else return null
+            else return null;
         }
     },
     Student: {
