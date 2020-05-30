@@ -48,16 +48,6 @@ const schema = buildSchema(`
     }
 `);
 
-const personType = new GraphQLInterfaceType({
-    name: 'Person',
-    fields: {
-        id: { type: GraphQLID },
-        name: { type: GraphQLString }
-    }
-});
-
-
-
 const root = {
     hello: () => {
         return 'Heyo world'
@@ -82,7 +72,7 @@ const root = {
     },
     workplaces: workplaces,
     PersonSearchResult: {
-        __resolveType(obj: any, context: any, info: any) {
+        resolveType(obj: any, context: any, info: any) {
             if (obj.school) return 'Student';
             else if (obj.workplace) return 'Worker';
             else return null
