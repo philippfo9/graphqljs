@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
  * - this is suboptimal, bc I need to type the same thing again as in the graphql schema and it can easily diverge 
  */
 
-interface IPerson {
+export interface IPerson {
     id: string;
     name: string;
 }

@@ -1,7 +1,7 @@
-import { persons, IStudent, isStudent, WorkerOrStudent, workplaces } from './persons';
 import express from 'express';
 import graphqlHTTP from 'express-graphql';
 import { graphql, buildSchema } from 'graphql';
+import { persons, IStudent, isStudent, WorkerOrStudent, workplaces } from './persons';
 
 /* Note to self 
  * - this is schema is already way to large, to be easily viewable
@@ -14,7 +14,7 @@ const schema = buildSchema(`
         miroslav: Miroslav
         person(id: ID!): Person
         studentsFromSchool(school: String!): [Student!]!
-        searchPersons(searchString: String!): [PersonSearchResult]!
+        searchPersons(searchTerm: String!): [SearchPersonResult]!
         workplaces: [WorkPlace!]!
     }
 
@@ -40,7 +40,7 @@ const schema = buildSchema(`
         workplace: WorkPlace
     }
 
-    union PersonSearchResult = Student | Worker
+    union SearchPersonResult = Student | Worker
 
     type WorkPlace {
         companyName: String!
@@ -67,16 +67,22 @@ const root = {
     studentsFromSchool: (args: {school: string}): IStudent[] => {
         return persons.filter(person => isStudent(person) && person.school === args.school) as IStudent[]; 
     },
-    searchPersons: ({searchString}: {searchString: string}): WorkerOrStudent[] => {
-        return persons.filter(person => person.name.includes(searchString));
+    searchPersons: ({searchTerm}: {searchTerm: string}): WorkerOrStudent[] => {
+        return persons.filter(person => person.name.includes(searchTerm));
     },
     workplaces: workplaces,
-    PersonSearchResult: {
-        resolveType(obj: any, context: any, info: any) {
+    SearchPersonResult: {
+        resolveType: (obj: any, context: any, info: any) => {
             if (obj.school) return 'Student';
             else if (obj.workplace) return 'Worker';
             else return null
         }
+    },
+    Student: {
+        isTypeOf: (obj: any) => !!obj.school
+    },
+    Worker: {
+        isTypeOf: (obj: any) => !!obj.workplace
     }
 };
 
