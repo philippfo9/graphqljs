@@ -6,10 +6,17 @@ import { IWorkPlace, workplaces } from './workplaces';
  */
 
 const names = ['Jeff', 'Bill', 'Gustav', 'Franco', 'Christina', 'Kristine', 'Bella', 'Joseph', 'Maria'];
+const citizenships = ['AT', 'DE', 'US', 'IT'];
+
+export interface IPersonInput {
+    name: string;
+    citizenship: string;
+}
 
 export interface IPerson {
     id: string;
     name: string;
+    citizenship: string;
 }
 
 export interface IStudent extends IPerson {
@@ -29,11 +36,12 @@ interface IWorker extends IPerson {
     workplace?: IWorkPlace;
 }
 
-export function newWorker(name: string, workplaceID: string): IWorker {
+export function newWorker({name, citizenship}: IPersonInput, workplaceID: string): IWorker {
     const workplace = workplaces.find(workplace => workplace.id === workplaceID);
     return {
         name,
         workplace,
+        citizenship,
         id: uuidv4()
     }
 }
@@ -47,13 +55,15 @@ export function isStudent(person: WorkerOrStudent): person is IStudent {
 export const persons: WorkerOrStudent[] = [];
 
 for (let i = 0; i < 9; i++) {
+    const name = names[i];
+    const citizenship = citizenships[i % 4];
     if (i % 2 == 0) {
         persons.push(
-            newStudent({name: names[i], school: 'First Boring School or so'})
+            newStudent({name, citizenship, school: 'First Boring School or so'})
         ); 
     } else {
         persons.push(
-            newWorker(names[i], workplaces[Math.round(Math.random() * 2)].id)
+            newWorker({name, citizenship}, workplaces[Math.round(Math.random() * 2)].id)
         );
     }
 }
