@@ -11,8 +11,8 @@ import { workplaces, newWorkplace, BaseWorkplace } from '../entities/workplaces'
 
 const schema = buildSchema(`
     type Mutation {
-        addStudent(school: String!, input: PersonInput!): Student!
-        addWorker(workplaceID: ID!, input: PersonInput!): Worker!
+        addStudent(school: String!, input: PersonInput): Student!
+        addWorker(workplaceID: ID!, input: PersonInput): Worker!
         addWorkplace(companyName: String!, country: String): WorkPlace!
     }
 
@@ -50,7 +50,7 @@ const schema = buildSchema(`
         workplace: WorkPlace
     }
 
-    type PersonInput {
+    input PersonInput {
         name: String!
         citizenship: String!
     }

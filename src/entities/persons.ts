@@ -63,7 +63,7 @@ for (let i = 0; i < 9; i++) {
         ); 
     } else {
         persons.push(
-            newWorker(name, citizenship, workplaces[Math.round(Math.random() * 2)].id)
+            newWorker({name, citizenship}, workplaces[Math.round(Math.random() * 2)].id)
         );
     }
 }
