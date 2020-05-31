@@ -1,7 +1,8 @@
 import express from 'express';
 import graphqlHTTP from 'express-graphql';
 import { graphql, buildSchema } from 'graphql';
-import { persons, IStudent, isStudent, WorkerOrStudent, workplaces } from './persons';
+import { persons, IStudent, BaseStudent, isStudent, WorkerOrStudent, newStudent, newWorker } from '../entities/persons';
+import { workplaces, newWorkplace, BaseWorkplace } from '../entities/workplaces';
 
 /* Note to self 
  * - this is schema is already way to large, to be easily viewable
@@ -9,6 +10,12 @@ import { persons, IStudent, isStudent, WorkerOrStudent, workplaces } from './per
 
 
 const schema = buildSchema(`
+    type Mutation {
+        addStudent(name: String!, school: String!): Student!
+        addWorker(name: String!, workplaceID: ID!): Worker!
+        addWorkplace(companyName: String!, country: String): WorkPlace!
+    }
+
     type Query {
         hello: String
         miroslav: Miroslav
@@ -43,6 +50,7 @@ const schema = buildSchema(`
     union SearchPersonResult = Student | Worker
 
     type WorkPlace {
+        id: ID!
         companyName: String!
         country: String
     }
@@ -69,6 +77,27 @@ const root = {
     },
     searchPersons: ({searchTerm}: {searchTerm: string}): WorkerOrStudent[] => {
         return persons.filter(person => person.name.includes(searchTerm));
+    },
+    addStudent: (baseStudent: BaseStudent): IStudent => {
+        const addedStudent = newStudent(baseStudent);
+        persons.push(
+            addedStudent
+        );
+        return addedStudent;
+    },
+    addWorker: ({name, workplaceID}: {name: string, workplaceID: string}) => {
+        const addedWorker = newWorker(name, workplaceID);
+        persons.push(
+            addedWorker
+        );
+        return addedWorker;
+    },
+    addWorkplace: (baseWorkplace: BaseWorkplace) => {
+        const addedWorkplace = newWorkplace(baseWorkplace);
+        workplaces.push(
+            addedWorkplace
+        );
+        return addedWorkplace;
     },
     workplaces: workplaces,
     SearchPersonResult: {

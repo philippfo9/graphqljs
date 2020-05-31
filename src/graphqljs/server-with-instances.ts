@@ -1,7 +1,8 @@
 import express from 'express';
 import graphqlHTTP from 'express-graphql';
 import { GraphQLInterfaceType, GraphQLID, GraphQLString, GraphQLObjectType, GraphQLUnionType, GraphQLList, GraphQLSchema } from 'graphql';
-import { persons, IPerson, IStudent, isStudent, WorkerOrStudent, workplaces } from './persons';
+import { persons, IStudent, isStudent, WorkerOrStudent } from '../entities/persons';
+import { workplaces } from '../entities/workplaces';
 
 const WorkplaceType = new GraphQLObjectType({
     name: 'Workplace',
