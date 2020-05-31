@@ -1,7 +1,7 @@
 import express from 'express';
 import graphqlHTTP from 'express-graphql';
 import { graphql, buildSchema } from 'graphql';
-import { persons, IStudent, BaseStudent, isStudent, WorkerOrStudent, newStudent, newWorker } from '../entities/persons';
+import { persons, IStudent, BaseStudent, isStudent, WorkerOrStudent, newStudent, newWorker, IPersonInput } from '../entities/persons';
 import { workplaces, newWorkplace, BaseWorkplace } from '../entities/workplaces';
 
 /* Note to self 
@@ -11,8 +11,8 @@ import { workplaces, newWorkplace, BaseWorkplace } from '../entities/workplaces'
 
 const schema = buildSchema(`
     type Mutation {
-        addStudent(name: String!, school: String!): Student!
-        addWorker(name: String!, workplaceID: ID!): Worker!
+        addStudent(school: String!, input: PersonInput!): Student!
+        addWorker(workplaceID: ID!, input: PersonInput!): Worker!
         addWorkplace(companyName: String!, country: String): WorkPlace!
     }
 
@@ -33,18 +33,26 @@ const schema = buildSchema(`
     interface Person {
         id: ID!
         name: String!
+        citizenship: String!
     }
 
     type Student implements Person {
         id: ID!
         name: String!
+        citizenship: String!
         school: String!
     }
 
     type Worker implements Person {
         id: ID!
         name: String!
+        citizenship: String!
         workplace: WorkPlace
+    }
+
+    type PersonInput {
+        name: String!
+        citizenship: String!
     }
 
     union SearchPersonResult = Student | Worker
@@ -78,15 +86,15 @@ const root = {
     searchPersons: ({searchTerm}: {searchTerm: string}): WorkerOrStudent[] => {
         return persons.filter(person => person.name.includes(searchTerm));
     },
-    addStudent: (baseStudent: BaseStudent): IStudent => {
-        const addedStudent = newStudent(baseStudent);
+    addStudent: ({school, input}: {school: string, input: IPersonInput}): IStudent => {
+        const addedStudent = newStudent({school, ...input});
         persons.push(
             addedStudent
         );
         return addedStudent;
     },
-    addWorker: ({name, workplaceID}: {name: string, workplaceID: string}) => {
-        const addedWorker = newWorker(name, workplaceID);
+    addWorker: ({workplaceID, input}: {workplaceID: string, input: IPersonInput}) => {
+        const addedWorker = newWorker(input, workplaceID);
         persons.push(
             addedWorker
         );
