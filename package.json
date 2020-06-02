@@ -5,7 +5,7 @@
   "main": "dist/server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start-graphljs": "ts-node ./src/graphqljs/server-with-instances.ts",
+    "start-graphqljs": "ts-node ./src/graphqljs/server-with-instances.ts",
     "start-legacy": "ts-node ./src/graphqljs/server-with-fixed-schema.ts",
     "compile": "tsc -p tsconfig.json"
   },

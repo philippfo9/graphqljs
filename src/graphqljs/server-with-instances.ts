@@ -1,13 +1,14 @@
 import express from 'express';
 import graphqlHTTP from 'express-graphql';
-import { GraphQLInterfaceType, GraphQLID, GraphQLString, GraphQLObjectType, GraphQLUnionType, GraphQLList, GraphQLSchema } from 'graphql';
-import { persons, IStudent, isStudent, WorkerOrStudent } from '../entities/persons';
-import { workplaces } from '../entities/workplaces';
+import { GraphQLInterfaceType, GraphQLID, GraphQLString, GraphQLObjectType, GraphQLUnionType, GraphQLList, GraphQLSchema, GraphQLInputObjectType, GraphQLNonNull } from 'graphql';
+import { persons, IStudent, isStudent, WorkerOrStudent, newStudent, newWorker } from '../entities/persons';
+import { workplaces, newWorkplace } from '../entities/workplaces';
 
 const WorkplaceType = new GraphQLObjectType({
     name: 'Workplace',
     fields: {
-        companyName: { type: GraphQLString },
+        id: { type: GraphQLNonNull(GraphQLID) },
+        companyName: { type: GraphQLNonNull(GraphQLString) },
         country: { type: GraphQLString }
     }
 })
@@ -15,8 +16,9 @@ const WorkplaceType = new GraphQLObjectType({
 const PersonType = new GraphQLInterfaceType({
     name: 'Person',
     fields: {
-        id: { type: GraphQLID },
-        name: { type: GraphQLString }
+        id: { type: GraphQLNonNull(GraphQLID) },
+        name: { type: GraphQLNonNull(GraphQLString) },
+        citizenship: { type: GraphQLNonNull(GraphQLString) }
     },
     resolveType: (value: any) => {
         if (value.school) return 'Student';
@@ -29,8 +31,9 @@ const StudentType = new GraphQLObjectType({
     name: 'Student',
     interfaces: [PersonType],
     fields: {
-        id: { type: GraphQLID },
-        name: { type: GraphQLString },
+        id: { type: GraphQLNonNull(GraphQLID) },
+        name: { type: GraphQLNonNull(GraphQLString) },
+        citizenship: { type: GraphQLNonNull(GraphQLString) }, 
         school: { type: GraphQLString }
     }
 });
@@ -39,8 +42,9 @@ const WorkerType = new GraphQLObjectType({
     name: 'Worker',
     interfaces: [PersonType],
     fields: {
-        id: { type: GraphQLID },
-        name: { type: GraphQLString },
+        id: { type: GraphQLNonNull(GraphQLID) },
+        name: { type: GraphQLNonNull(GraphQLString) },
+        citizenship: { type: GraphQLNonNull(GraphQLString) },
         workplace: { type: WorkplaceType }
     }
 });
@@ -55,17 +59,17 @@ const SearchPersonResultType = new GraphQLUnionType({
     }
 })
 
-const queryType = new GraphQLObjectType({
+const QueryType = new GraphQLObjectType({
     name: 'Query',
     fields: {
         hello: {
-            type: GraphQLString,
+            type: GraphQLNonNull(GraphQLString),
             resolve: () => 'Hello World',
         },
         person: {
             type: PersonType,
             args: {
-                id: { type: GraphQLID }
+                id: { type: GraphQLNonNull(GraphQLID) }
             },
             resolve: (_, {id}): WorkerOrStudent | undefined => {
                 return persons.find(person => person.id === id);
@@ -74,7 +78,7 @@ const queryType = new GraphQLObjectType({
         studentsFromSchool: {
             type: new GraphQLList(StudentType),
             args: {
-                school: { type: GraphQLString }
+                school: { type: GraphQLNonNull(GraphQLString) }
             },
             resolve: (_, {school}): IStudent[] => {
                 return persons.filter(person => isStudent(person) && person.school === school) as IStudent[]; 
@@ -84,20 +88,76 @@ const queryType = new GraphQLObjectType({
         searchPersons: {
             type: new GraphQLList(SearchPersonResultType),
             args: {
-                searchTerm: { type: GraphQLString }
+                searchTerm: { type: GraphQLNonNull(GraphQLString) }
             },
             resolve: (_, {searchTerm}): WorkerOrStudent[] => {
                 return persons.filter(person => person.name.includes(searchTerm));
             }
         },
         workplaces: {
-            type: WorkplaceType,
+            type: new GraphQLList(WorkplaceType),
             resolve: (_) => workplaces
         } 
     }
 });
 
-const graphQLSchema = new GraphQLSchema({ query: queryType });
+const PersonInputType = new GraphQLInputObjectType({
+    name: 'PersonInput',
+    fields: {
+        name: { type: GraphQLNonNull(GraphQLString) },
+        citizenship: { type: GraphQLNonNull(GraphQLString) }
+    }
+});
+
+const MutationType = new GraphQLObjectType({
+    name: 'Mutation',
+    fields: {
+        addStudent: {
+            type: StudentType,
+            args: {
+                school: { type: GraphQLNonNull(GraphQLString) },
+                input: { type: GraphQLNonNull(PersonInputType) }
+            },
+            resolve: (_, {school, input}) => {
+                const addedStudent = newStudent({school, ...input});
+                persons.push(
+                    addedStudent
+                );
+                return addedStudent;
+            }
+        },
+        addWorker: {
+            type: WorkerType,
+            args: {
+                workplaceID: { type: GraphQLNonNull(GraphQLString) },
+                input: { type: GraphQLNonNull(PersonInputType) }
+            },
+            resolve: (_, {workplaceID, input}) => {
+                const addedWorker = newWorker(input, workplaceID);
+                persons.push(
+                    addedWorker
+                );
+                return addedWorker;
+            }
+        },
+        addWorkplace: {
+            type: WorkplaceType,
+            args: {
+                companyName: {type: GraphQLNonNull(GraphQLString)},
+                country: {type: GraphQLString}
+            },
+            resolve: (_, {companyName, country}) => {
+                const addedWorkplace = newWorkplace({companyName, country});
+                workplaces.push(
+                    addedWorkplace
+                );
+                return addedWorkplace;
+            }
+        }
+    }
+});
+
+const graphQLSchema = new GraphQLSchema({ query: QueryType, mutation: MutationType });
 const app = express();
 app.use('/graphql', graphqlHTTP({
     schema: graphQLSchema,
