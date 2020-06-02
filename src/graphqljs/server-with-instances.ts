@@ -1,7 +1,8 @@
+import { BaseWorkplace, newWorkplace } from './../entities/workplaces';
 import express from 'express';
 import graphqlHTTP from 'express-graphql';
-import { GraphQLInterfaceType, GraphQLID, GraphQLString, GraphQLObjectType, GraphQLUnionType, GraphQLList, GraphQLSchema } from 'graphql';
-import { persons, IStudent, isStudent, WorkerOrStudent } from '../entities/persons';
+import { GraphQLInterfaceType, GraphQLID, GraphQLString, GraphQLObjectType, GraphQLUnionType, GraphQLList, GraphQLSchema, GraphQLInputObjectType, GraphQLNonNull } from 'graphql';
+import { persons, IStudent, isStudent, WorkerOrStudent, newStudent, newWorker } from '../entities/persons';
 import { workplaces } from '../entities/workplaces';
 
 const WorkplaceType = new GraphQLObjectType({
@@ -16,7 +17,8 @@ const PersonType = new GraphQLInterfaceType({
     name: 'Person',
     fields: {
         id: { type: GraphQLID },
-        name: { type: GraphQLString }
+        name: { type: GraphQLString },
+        citizenship: { type: GraphQLString }
     },
     resolveType: (value: any) => {
         if (value.school) return 'Student';
@@ -31,6 +33,7 @@ const StudentType = new GraphQLObjectType({
     fields: {
         id: { type: GraphQLID },
         name: { type: GraphQLString },
+        citizenship: { type: GraphQLString }, 
         school: { type: GraphQLString }
     }
 });
@@ -41,6 +44,7 @@ const WorkerType = new GraphQLObjectType({
     fields: {
         id: { type: GraphQLID },
         name: { type: GraphQLString },
+        citizenship: { type: GraphQLString },
         workplace: { type: WorkplaceType }
     }
 });
@@ -55,7 +59,7 @@ const SearchPersonResultType = new GraphQLUnionType({
     }
 })
 
-const queryType = new GraphQLObjectType({
+const QueryType = new GraphQLObjectType({
     name: 'Query',
     fields: {
         hello: {
@@ -97,7 +101,63 @@ const queryType = new GraphQLObjectType({
     }
 });
 
-const graphQLSchema = new GraphQLSchema({ query: queryType });
+const PersonInputType = new GraphQLInputObjectType({
+    name: 'PersonInput',
+    fields: {
+        name: { type: GraphQLString },
+        citizenship: { type: GraphQLString }
+    }
+});
+
+const MutationType = new GraphQLObjectType({
+    name: 'Mutation',
+    fields: {
+        addStudent: {
+            type: StudentType,
+            args: {
+                school: { type: GraphQLString },
+                input: { type: PersonInputType }
+            },
+            resolve: (_, {school, input}) => {
+                const addedStudent = newStudent({school, ...input});
+                persons.push(
+                    addedStudent
+                );
+                return addedStudent;
+            }
+        },
+        addWorker: {
+            type: WorkerType,
+            args: {
+                workplaceID: { type: GraphQLString },
+                input: { type: PersonInputType }
+            },
+            resolve: (_, {workplaceID, input}) => {
+                const addedWorker = newWorker(input, workplaceID);
+                persons.push(
+                    addedWorker
+                );
+                return addedWorker;
+            }
+        },
+        addWorkplace: {
+            type: WorkplaceType,
+            args: {
+                companyName: {type: GraphQLString},
+                country: {type: GraphQLString}
+            },
+            resolve: (_, {companyName, country}) => {
+                const addedWorkplace = newWorkplace({companyName, country});
+                workplaces.push(
+                    addedWorkplace
+                );
+                return addedWorkplace;
+            }
+        }
+    }
+})
+
+const graphQLSchema = new GraphQLSchema({ query: QueryType, mutation: MutationType });
 const app = express();
 app.use('/graphql', graphqlHTTP({
     schema: graphQLSchema,
