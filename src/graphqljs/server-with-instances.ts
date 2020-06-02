@@ -8,7 +8,7 @@ import { workplaces } from '../entities/workplaces';
 const WorkplaceType = new GraphQLObjectType({
     name: 'Workplace',
     fields: {
-        companyName: { type: GraphQLString },
+        companyName: { type: GraphQLNonNull(GraphQLString) },
         country: { type: GraphQLString }
     }
 })
@@ -16,9 +16,9 @@ const WorkplaceType = new GraphQLObjectType({
 const PersonType = new GraphQLInterfaceType({
     name: 'Person',
     fields: {
-        id: { type: GraphQLID },
-        name: { type: GraphQLString },
-        citizenship: { type: GraphQLString }
+        id: { type: GraphQLNonNull(GraphQLID) },
+        name: { type: GraphQLNonNull(GraphQLString) },
+        citizenship: { type: GraphQLNonNull(GraphQLString) }
     },
     resolveType: (value: any) => {
         if (value.school) return 'Student';
@@ -31,9 +31,9 @@ const StudentType = new GraphQLObjectType({
     name: 'Student',
     interfaces: [PersonType],
     fields: {
-        id: { type: GraphQLID },
-        name: { type: GraphQLString },
-        citizenship: { type: GraphQLString }, 
+        id: { type: GraphQLNonNull(GraphQLID) },
+        name: { type: GraphQLNonNull(GraphQLString) },
+        citizenship: { type: GraphQLNonNull(GraphQLString) }, 
         school: { type: GraphQLString }
     }
 });
@@ -43,8 +43,8 @@ const WorkerType = new GraphQLObjectType({
     interfaces: [PersonType],
     fields: {
         id: { type: GraphQLID },
-        name: { type: GraphQLString },
-        citizenship: { type: GraphQLString },
+        name: { type: GraphQLNonNull(GraphQLString) },
+        citizenship: { type: GraphQLNonNull(GraphQLString) },
         workplace: { type: WorkplaceType }
     }
 });
@@ -63,7 +63,7 @@ const QueryType = new GraphQLObjectType({
     name: 'Query',
     fields: {
         hello: {
-            type: GraphQLString,
+            type: GraphQLNonNull(GraphQLString),
             resolve: () => 'Hello World',
         },
         person: {
@@ -78,7 +78,7 @@ const QueryType = new GraphQLObjectType({
         studentsFromSchool: {
             type: new GraphQLList(StudentType),
             args: {
-                school: { type: GraphQLString }
+                school: { type: GraphQLNonNull(GraphQLString) }
             },
             resolve: (_, {school}): IStudent[] => {
                 return persons.filter(person => isStudent(person) && person.school === school) as IStudent[]; 
@@ -88,7 +88,7 @@ const QueryType = new GraphQLObjectType({
         searchPersons: {
             type: new GraphQLList(SearchPersonResultType),
             args: {
-                searchTerm: { type: GraphQLString }
+                searchTerm: { type: GraphQLNonNull(GraphQLString) }
             },
             resolve: (_, {searchTerm}): WorkerOrStudent[] => {
                 return persons.filter(person => person.name.includes(searchTerm));
@@ -104,8 +104,8 @@ const QueryType = new GraphQLObjectType({
 const PersonInputType = new GraphQLInputObjectType({
     name: 'PersonInput',
     fields: {
-        name: { type: GraphQLString },
-        citizenship: { type: GraphQLString }
+        name: { type: GraphQLNonNull(GraphQLString) },
+        citizenship: { type: GraphQLNonNull(GraphQLString) }
     }
 });
 
@@ -115,8 +115,8 @@ const MutationType = new GraphQLObjectType({
         addStudent: {
             type: StudentType,
             args: {
-                school: { type: GraphQLString },
-                input: { type: PersonInputType }
+                school: { type: GraphQLNonNull(GraphQLString) },
+                input: { type: GraphQLNonNull(PersonInputType) }
             },
             resolve: (_, {school, input}) => {
                 const addedStudent = newStudent({school, ...input});
@@ -129,8 +129,8 @@ const MutationType = new GraphQLObjectType({
         addWorker: {
             type: WorkerType,
             args: {
-                workplaceID: { type: GraphQLString },
-                input: { type: PersonInputType }
+                workplaceID: { type: GraphQLNonNull(GraphQLString) },
+                input: { type: GraphQLNonNull(PersonInputType) }
             },
             resolve: (_, {workplaceID, input}) => {
                 const addedWorker = newWorker(input, workplaceID);
@@ -143,7 +143,7 @@ const MutationType = new GraphQLObjectType({
         addWorkplace: {
             type: WorkplaceType,
             args: {
-                companyName: {type: GraphQLString},
+                companyName: {type: GraphQLNonNull(GraphQLString)},
                 country: {type: GraphQLString}
             },
             resolve: (_, {companyName, country}) => {
