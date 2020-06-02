@@ -1,13 +1,13 @@
-import { BaseWorkplace, newWorkplace } from './../entities/workplaces';
 import express from 'express';
 import graphqlHTTP from 'express-graphql';
 import { GraphQLInterfaceType, GraphQLID, GraphQLString, GraphQLObjectType, GraphQLUnionType, GraphQLList, GraphQLSchema, GraphQLInputObjectType, GraphQLNonNull } from 'graphql';
 import { persons, IStudent, isStudent, WorkerOrStudent, newStudent, newWorker } from '../entities/persons';
-import { workplaces } from '../entities/workplaces';
+import { workplaces, newWorkplace } from '../entities/workplaces';
 
 const WorkplaceType = new GraphQLObjectType({
     name: 'Workplace',
     fields: {
+        id: { type: GraphQLNonNull(GraphQLID) },
         companyName: { type: GraphQLNonNull(GraphQLString) },
         country: { type: GraphQLString }
     }
@@ -42,7 +42,7 @@ const WorkerType = new GraphQLObjectType({
     name: 'Worker',
     interfaces: [PersonType],
     fields: {
-        id: { type: GraphQLID },
+        id: { type: GraphQLNonNull(GraphQLID) },
         name: { type: GraphQLNonNull(GraphQLString) },
         citizenship: { type: GraphQLNonNull(GraphQLString) },
         workplace: { type: WorkplaceType }
@@ -69,7 +69,7 @@ const QueryType = new GraphQLObjectType({
         person: {
             type: PersonType,
             args: {
-                id: { type: GraphQLID }
+                id: { type: GraphQLNonNull(GraphQLID) }
             },
             resolve: (_, {id}): WorkerOrStudent | undefined => {
                 return persons.find(person => person.id === id);
@@ -95,7 +95,7 @@ const QueryType = new GraphQLObjectType({
             }
         },
         workplaces: {
-            type: WorkplaceType,
+            type: new GraphQLList(WorkplaceType),
             resolve: (_) => workplaces
         } 
     }
@@ -155,7 +155,7 @@ const MutationType = new GraphQLObjectType({
             }
         }
     }
-})
+});
 
 const graphQLSchema = new GraphQLSchema({ query: QueryType, mutation: MutationType });
 const app = express();
