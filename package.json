@@ -8,16 +8,22 @@
     "start-graphqljs": "ts-node-dev --ignore-watch ./src/graphqljs/server-with-instances.ts --no-notify --transpileOnly --respawn ./src",
     "start-legacy": "ts-node-dev --ignore-watch ./src/graphqljs/server-with-fixed-schema.ts --no-notify --transpileOnly --respawn ./src",
     "start-nexus": "ts-node-dev --ignore-watch ./src/nexus/server.ts --no-notify --transpileOnly --respawn ./src",
+    "start-typegraphql": "ts-node-dev --ignore-watch --no-notify --transpileOnly ./src/typegraphql/server.ts ",
     "dev-start": "ts-node-dev --ignore-watch ./src/nexus/server.ts --no-notify --transpileOnly --respawn ./src",
-    "compile": "tsc -p tsconfig.json"
+    "compile": "tsc -p tsconfig.json",
+    "nexus-dev": "nexus dev",
+    "nexus-build": "nexus build"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "class-validator": "^0.12.2",
     "express": "^4.17.1",
     "express-graphql": "^0.9.0",
     "graphql": "^15.0.0",
     "nexus": "^0.22.0",
+    "reflect-metadata": "^0.1.13",
+    "type-graphql": "^1.0.0-rc.2",
     "uuid": "^8.1.0"
   },
   "devDependencies": {
