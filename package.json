@@ -21,7 +21,7 @@
     "express": "^4.17.1",
     "express-graphql": "^0.9.0",
     "graphql": "^15.0.0",
-    "nexus": "^0.22.0",
+    "nexus": "^1.3.0",
     "reflect-metadata": "^0.1.13",
     "type-graphql": "^1.0.0-rc.2",
     "uuid": "^8.1.0"
